@@ -1,7 +1,7 @@
 # Mini project for ECS781P
 
 ## Command used to run
-'''
+```
 gcloud config set compute/zone europe-west2-b
 export PROJECT_ID="$(gcloud config get-value project -q)"
 docker pull cassandra:latest
@@ -36,21 +36,21 @@ kubectl run crime-app --image=gcr.io/${PROJECT_ID}/crime-app:v10 --port 8080
 kubectl expose deployment crime-app --type=LoadBalancer --port 80 --target-port 8080
 
 kubectl get services
-'''
+```
 
 ### Clean up 
-'''
+```
 kubectl delete service crime-app
 kubectl delete deployment crime-app
 
 kubectl delete --all replicationcontroller
 kubectl delete --all services
 gcloud container clusters delete cassandra
-'''
+```
 
 ### POST/DELETE Request
-'''
+```
 curl -i -H "Content-Type: application/json" -X POST -d '{"id":123,"category":"anti","latitude":"123213","longtitude":"23432"}' http://{external_ip}/crimes
 
 curl -X "DELETE" http://{external_ip}/crimes/123
-'''
+```
