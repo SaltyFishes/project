@@ -27,10 +27,10 @@ kubectl create -f cassandra-replication-controller.yml
 kubectl get pods -l name=cassandra
 kubectl scale rc cassandra --replicas=3
 
-kubectl exec -it cassandra- -- nodetool status
+kubectl exec -it cassandra-{name} -- nodetool status
 
-kubectl cp crime_data.csv cassandra-:/crime_data.csv
-kubectl exec -it cassandra- cqlsh
+kubectl cp crime_data.csv cassandra-{name}:/crime_data.csv
+kubectl exec -it cassandra-{name} cqlsh
 
 CREATE KEYSPACE crime WITH REPLICATION ={'class' : 'SimpleStrategy', 'replication_factor' : 2};
 
