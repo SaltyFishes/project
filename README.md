@@ -1,1 +1,51 @@
 Mini project for ECS781P
+
+
+gcloud config set compute/zone europe-west2-b
+export PROJECT_ID="$(gcloud config get-value project -q)"
+docker pull cassandra:latest
+
+gcloud container clusters create cassandra --num-nodes=3 --machine-type "n1-standard-2"
+
+wget -O cassandra-peer-service.yml http://tinyurl.com/yyxnephy
+wget -O cassandra-service.yml http://tinyurl.com/y65czz8e
+wget -O cassandra-replication-controller.yml http://tinyurl.com/y2crfsl8
+
+kubectl create -f cassandra-peer-service.yml
+kubectl create -f cassandra-service.yml
+kubectl create -f cassandra-replication-controller.yml
+
+kubectl get pods -l name=cassandra
+kubectl scale rc cassandra --replicas=3
+
+kubectl exec -it cassandra- -- nodetool status
+
+kubectl cp crime_data.csv cassandra-:/crime_data.csv
+kubectl exec -it cassandra- cqlsh
+
+CREATE KEYSPACE crime WITH REPLICATION ={'class' : 'SimpleStrategy', 'replication_factor' : 2};
+
+CREATE TABLE crime.sta (ID int PRIMARY KEY, category text, loc_lat text, loc_lon text, st_id int, st_name text, outcome text) ;
+
+COPY crime.sta (ID, category, loc_lat, loc_lon, st_id, st_name, outcome) FROM 'crime_data.csv' WITH DELIMITER=',' AND HEADER=TRUE;
+
+docker build -t gcr.io/${PROJECT_ID}/crime-app:v10 .
+docker push gcr.io/${PROJECT_ID}/crime-app:v10
+kubectl run crime-app --image=gcr.io/${PROJECT_ID}/crime-app:v10 --port 8080
+kubectl expose deployment crime-app --type=LoadBalancer --port 80 --target-port 8080
+
+kubectl get services
+
+kubectl delete service crime-app
+kubectl delete deployment crime-app
+
+
+
+kubectl delete --all replicationcontroller
+kubectl delete --all services
+gcloud container clusters delete cassandra
+
+
+curl -i -H "Content-Type: application/json" -X POST -d '{"id":123,"category":"anti","latitude":"123213","longtitude":"23432"}' http://35.242.143.102/crimes
+
+curl -X "DELETE" http://35.242.143.102/crimes/123
